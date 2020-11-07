@@ -3,7 +3,7 @@ import { IProjectUserPermmsion, ProjectUserPermissionSchema } from './project-us
 
 export interface IProjectUser {
     userId: string,
-    permissions: Map<string, IProjectUserPermmsion> 
+    permissions: IProjectUserPermmsion
 }
 
 export const ProjectUserSchema = new Schema({
@@ -12,8 +12,5 @@ export const ProjectUserSchema = new Schema({
         required: true,
         trim: true
     },
-    permissions: {
-        type: Map,
-        of: ProjectUserPermissionSchema
-    }
+    permissions: ProjectUserPermissionSchema
 })

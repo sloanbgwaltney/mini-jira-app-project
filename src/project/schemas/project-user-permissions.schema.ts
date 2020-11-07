@@ -1,19 +1,16 @@
 import {Schema} from 'mongoose'
 
 export interface IProjectUserPermmsion {
-    name: string,
-    description: string
+    projectOwner: boolean
+}
+
+export enum IProjectUserPermissionEnum {
+    PROJECT_OWNER = 'projectOwner'
 }
 
 export const ProjectUserPermissionSchema = new Schema({
-    name: {
-        type: String,
-        required: true,
-        trim: true
-    },
-    description: {
-        type: String,
-        required: true,
-        trim: true
+    projectOwner: {
+        type: Boolean,
+        default: false
     }
 })

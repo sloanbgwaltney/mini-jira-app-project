@@ -1,11 +1,13 @@
-import {Schema, model, Document} from 'mongoose'
+import {Schema, model, Document, Model} from 'mongoose'
 import { IProjectUser, ProjectUserSchema } from './schemas/project-user.schema'
 
 export interface IProject extends Document {
     name: string,
     description: string,
-    users: Map<string, Map<string, IProjectUser>>
+    users: Map<string, IProjectUser>
 }
+
+export interface IProjectModel extends Model<IProject> {}
 
 export const ProjectSchema = new Schema({
     name: {
@@ -26,4 +28,4 @@ export const ProjectSchema = new Schema({
 
 export const PROJECT_COLLECTION_NAME = 'Project'
 
-export const Project = model<IProject>(PROJECT_COLLECTION_NAME, ProjectSchema)
+export const Project = model<IProject, IProjectModel>(PROJECT_COLLECTION_NAME, ProjectSchema)

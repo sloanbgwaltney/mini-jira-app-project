@@ -1,5 +1,5 @@
 import {Schema, model, Document} from 'mongoose'
-import { IProjectUser, ProjectUserSchema } from './project-user.schema'
+import { IProjectUser, ProjectUserSchema } from './schemas/project-user.schema'
 
 export interface IProject extends Document {
     name: string,

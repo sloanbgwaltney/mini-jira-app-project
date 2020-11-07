@@ -1,0 +1,28 @@
+version: "3"
+services:
+    auth:
+        image: sloang/mini-jira-auth:0.1.1
+        restart: always
+        environment: 
+            MONGO_URI: 'mongodb://mongo:27017/auth'
+            PORT: '3000'
+    project:
+        container_name: mini_jira_app_project
+        restart: always
+        environment:
+            NODE_ENV: 'development'
+            MONGO_URI: 'mongodb://project_mongo:27017/project'
+        build: .
+        command: 'npm run dev'
+        ports: 
+            - '3001:3001'
+        links:
+            - mongo
+            - auth
+        volumes: 
+            - ".:/app"
+    mongo:
+        container_name: project_mongo
+        image: mongo
+        ports:
+            - "27017:27017"

@@ -1,6 +1,6 @@
 import {Schema} from 'mongoose'
 
-export interface IProjectUserPermmsion {
+export interface IProjectUserPermission {
     projectOwner: boolean
 }
 

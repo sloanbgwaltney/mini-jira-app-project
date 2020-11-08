@@ -1,5 +1,5 @@
 import {Schema, model, Document, Model} from 'mongoose'
-import { IProjectUserPermissionEnum } from './schemas/project-user-permissions.schema'
+import { IProjectUserPermission, IProjectUserPermissionEnum } from './schemas/project-user-permissions.schema'
 import { IProjectUser, ProjectUserSchema } from './schemas/project-user.schema'
 
 export interface IProject extends Document {
@@ -8,7 +8,8 @@ export interface IProject extends Document {
     users: Map<string, IProjectUser>,
     assignUserPermission: (this: IProject, userId: string, permission: IProjectUserPermissionEnum) => IProject,
     validateUserPermission: (this: IProject, userId: string, permission: IProjectUserPermissionEnum) => boolean,
-    userIsAProjectOwner: (this: IProject, userId: string) => boolean
+    userIsAProjectOwner: (this: IProject, userId: string) => boolean,
+    userCanUpdateProject: (this: IProject, userId: string) => boolean
 }
 
 export interface IProjectModel extends Model<IProject> {}
@@ -35,8 +36,14 @@ ProjectSchema.methods.assignUserPermission = function(this: IProject, userId: st
     const newProject = this
     const projectUser = newProject.users.get(userId)
     if (!projectUser) {
-        const newProjectUser: IProjectUser = {userId, permissions: {[permission]: true}}
-        newProject.set(userId, newProjectUser)
+        let newProjectUserPermissions: IProjectUserPermission;
+        // mongoose could do this for us but typescript is given some friction when only inserting one permisssion
+        for (const key in IProjectUserPermissionEnum) {
+            newProjectUserPermissions[key] = false
+        }
+        const newProjectUser = {userId, permissions: newProjectUserPermissions}
+        newProjectUser.permissions[permission] = true
+        newProject.users.set(userId, newProjectUser)
     } else {
         projectUser.permissions[permission] == true
         newProject.users.set(userId, projectUser)
@@ -52,6 +59,10 @@ ProjectSchema.methods.validateUserPermission = function(this: IProject, userId: 
 
 ProjectSchema.methods.userIsAProjectOwner = function(this: IProject, userId: string): boolean {
     return this.validateUserPermission(userId, IProjectUserPermissionEnum.PROJECT_OWNER)
+}
+
+ProjectSchema.methods.userCanUpdateProject = function(this: IProject, userId: string): boolean {
+    return this.validateUserPermission(userId, IProjectUserPermissionEnum.UPDATE_PROJECT)
 }
 
 export const PROJECT_COLLECTION_NAME = 'Project'

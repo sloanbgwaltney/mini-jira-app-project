@@ -1,0 +1,1 @@
+type PartialExcept<T, K extends keyof T> = DeepPartial<T> & Pick<T, K>;

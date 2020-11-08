@@ -1,9 +1,9 @@
 import {Schema} from 'mongoose'
-import { IProjectUserPermmsion, ProjectUserPermissionSchema } from './project-user-permissions.schema'
+import { IProjectUserPermission, ProjectUserPermissionSchema } from './project-user-permissions.schema'
 
 export interface IProjectUser {
     userId: string,
-    permissions: IProjectUserPermmsion
+    permissions: IProjectUserPermission
 }
 
 export const ProjectUserSchema = new Schema({

@@ -4,8 +4,8 @@ import {ItemNotFoundError} from '../errors/item-not-found.error'
 import {ForbiddenError} from '../errors/forbidden.error'
 
 export const createProjectService = (Project: IProjectModel) => (userId: string, body: Partial<IProject>) => {
+    body.users = undefined
     const project = new Project(body)
-    project.users = undefined
     const projectWithUser = project.assignUserPermission(userId, IProjectUserPermissionEnum.PROJECT_OWNER)
     return projectWithUser.save()
 }

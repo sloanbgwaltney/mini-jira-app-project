@@ -27,7 +27,8 @@ export const ProjectSchema = new Schema({
     },
     users: {
         type: Map,
-        of: ProjectUserSchema
+        of: ProjectUserSchema,
+        default: new Map()
     }
 })
 
@@ -36,11 +37,7 @@ ProjectSchema.methods.assignUserPermission = function(this: IProject, userId: st
     const newProject = this
     const projectUser = newProject.users.get(userId)
     if (!projectUser) {
-        let newProjectUserPermissions: IProjectUserPermission;
-        // mongoose could do this for us but typescript is given some friction when only inserting one permisssion
-        for (const key in IProjectUserPermissionEnum) {
-            newProjectUserPermissions[key] = false
-        }
+        let newProjectUserPermissions: IProjectUserPermission = {projectOwner: false, updateProject: false}
         const newProjectUser = {userId, permissions: newProjectUserPermissions}
         newProjectUser.permissions[permission] = true
         newProject.users.set(userId, newProjectUser)

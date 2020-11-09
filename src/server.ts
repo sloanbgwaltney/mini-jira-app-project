@@ -1,12 +1,13 @@
 import express = require('express')
 import {connect} from 'mongoose'
 import { routes } from './routes'
-import passport from 'passport'
+import passport = require('passport')
 import { configPassport } from './config/passport'
 
 connect(process.env.MONGO_URI, {useUnifiedTopology: true, useNewUrlParser: true})
     .then(() => {
         const app = express()
+        app.use(express.json())
         app.use(passport.initialize())
         configPassport(passport)
         routes(app)

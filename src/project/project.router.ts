@@ -1,5 +1,5 @@
 import {Router} from 'express'
-import passport from 'passport'
+import passport = require('passport')
 import { createOrUpdateProjectController, createProjectController, deleteProjectController, updateExistingProjectController } from './project.controller'
 import { Project } from './project.model'
 import { createOrUpdateProjectService, createProjectService, deleteProjectService, updateExistingProjectService } from './project.service'

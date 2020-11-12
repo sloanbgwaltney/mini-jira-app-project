@@ -4,6 +4,7 @@ import { routes } from './routes'
 import passport = require('passport')
 import { configPassport } from './config/passport'
 import { requestContextInitializer } from './lib/request-context-initializer'
+import { apiErrorCatcher } from './lib/api-error-catcher'
 
 connect(process.env.MONGO_URI, {useUnifiedTopology: true, useNewUrlParser: true})
     .then(() => {
@@ -13,5 +14,6 @@ connect(process.env.MONGO_URI, {useUnifiedTopology: true, useNewUrlParser: true}
         app.use(requestContextInitializer())
         configPassport(passport)
         routes(app)
+        app.use(apiErrorCatcher())
         app.listen(process.env.PORT, () => console.log('Project microservice running'))
     }).catch(e => console.log(e))

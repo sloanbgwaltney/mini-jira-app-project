@@ -1,7 +1,10 @@
 import {Schema, model, Document, Model} from 'mongoose'
 import { IProjectUserPermission, IProjectUserPermissionEnum } from './schemas/project-user-permissions.schema'
 import { IProjectUser, ProjectUserSchema } from './schemas/project-user.schema'
-
+import {Error} from 'mongoose'
+import { ValidationError } from '../errors/validation-error'
+import {ItemNotFoundError} from '../errors/item-not-found.error'
+import { ForbiddenError } from '../errors/forbidden.error'
 export interface IProject extends Document {
     name: string,
     description: string,
@@ -19,7 +22,7 @@ export interface IProjectModel extends Model<IProject> {
     findCurrentUsersProjects: (this: IProjectModel, contextKeyToSave: string) => (req, res, next) => Promise<void>,
     saveEntity: (this: IProjectModel, documentContextKey: string, contextSaveKey: string) => (req, res, next) => Promise<void>,
     userHasPermission: (this: IProjectModel, userIdContextKey: string, projectContextKey: string, permissions?: IProjectUserPermissionEnum[]) => (req, res, next) => void,
-    findEntityById: (this: IProjectModel, idContextKey: string, storageContextKey: string) => (req, res, next) => Promise<void>,
+    findEntityById: (this: IProjectModel, idContextKey: string, storageContextKey: string, errorIfNotFound?: boolean) => (req, res, next) => Promise<void>,
     updateEntityById: (this: IProjectModel, idContextKey: string, storageContectKey: string, requestUpdateBodyKey?: string) => (req, res, next) => Promise<void>,
     deleteEntityById: (this: IProjectModel, entityContextKey: string) => (req, res, next) => Promise<void>
 }
@@ -74,10 +77,17 @@ ProjectSchema.statics.findCurrentUsersProjects = function(this: IProjectModel, c
 
 ProjectSchema.statics.saveEntity = function(this: IProjectModel, documentContextKey: string, contextSaveKey: string) {
     return async function (req, res, next) {
-        const doc = req.ctx[documentContextKey] as IProject
-        const result = await doc.save()
-        req.ctx[contextSaveKey] = result
-        next()
+        try {
+            const doc = req.ctx[documentContextKey] as IProject
+            const result = await doc.save()
+            req.ctx[contextSaveKey] = result
+            next()
+        } catch(e) {
+            if (e instanceof Error.ValidationError) {
+                return next(new ValidationError(e.message))
+            }
+            next(e)
+        }
     }
 }
 
@@ -87,10 +97,7 @@ ProjectSchema.statics.userHasPermission = function(this: IProjectModel, userIdCo
         const project = req.ctx[projectContextKey] as IProject
         let isAuthorized = false
         if (!permissions) {
-            if (!project.userHasPermission(userId)) {
-                res.errorCode = 401
-                return next('unauthorized')
-            }
+            if (!project.userHasPermission(userId)) return next(new ForbiddenError())
             return next()
         }
         for (const permission of permissions) {
@@ -99,19 +106,17 @@ ProjectSchema.statics.userHasPermission = function(this: IProjectModel, userIdCo
                 break
             }
         }
-        if (!isAuthorized) {
-            res.errorCode = 401
-            return next('unauthorized')
-        }
+        if (!isAuthorized) return next(new ForbiddenError())
         next()
     }
 }
 
-ProjectSchema.statics.findEntityById = function(this: IProjectModel, idContextKey: string, storageContextKey: string) {
+ProjectSchema.statics.findEntityById = function(this: IProjectModel, idContextKey: string, storageContextKey: string, errorIfNotFound = true) {
     const self = this
     return async function(req, res, next) {
-        const userId = req.ctx[idContextKey] as string
-        req.ctx[storageContextKey] = await self.findById(userId)
+        const projectId = req.ctx[idContextKey] as string
+        req.ctx[storageContextKey] = await self.findById(projectId)
+        if (!req.ctx[storageContextKey] && errorIfNotFound) return next(new ItemNotFoundError(`No project found with the id ${projectId}`))
         next()
     }
 }
